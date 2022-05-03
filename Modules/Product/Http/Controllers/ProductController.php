@@ -2,78 +2,107 @@
 
 namespace Modules\Product\Http\Controllers;
 
-use Illuminate\Contracts\Support\Renderable;
+use App\Service\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Category\Entities\Category;
+use Modules\Product\Entities\Product;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Modules\Product\Service\ProductImageService;
+use Modules\ProductCategory\Entities\ProductCategory;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     * @return Renderable
-     */
+    use AuthorizesRequests;
+
+    protected $productImageService;
+    protected $imageService;
+
+    public function __construct(ProductImageService $productImageService, ImageService $imageService)
+    {
+        $this->productImageService = $productImageService;
+        $this->imageService = $imageService;
+    }
+
     public function index()
     {
-        return view('product::index');
+        $this->authorize('manageProducts');
+
+        $products = Product::with('user.vendor')
+            ->when(request()->filled('search'), function ($query) {
+                return $query->where('title', 'like', '%' . request('search') . "%");
+            })
+            ->latest()
+            ->paginate(request('per_page') ?? 15)
+            ->withQueryString();
+
+        return view('product::index', compact('products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * @return Renderable
-     */
-    public function create()
+    public function getcategories()
     {
-        return view('product::create');
+        $categories = Category::where('publish', 1)->get();
+        return response()->json(['data' => $categories, 'status_code' => 200]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * @param Request $request
-     * @return Renderable
-     */
-    public function store(Request $request)
+    public function getsubcategory(Request $request)
     {
-        return view('product::product.add');
+        $categories = Category::find($request->category_id);
+        return response()->json(['category' => $categories]);
     }
 
-    /**
-     * Show the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function show($id)
+    public function getProductCategory(Request $request)
     {
-        return view('product::show');
+        $request->validate([
+            'subcategory_id' => ['required', 'exists:subcategories,id'],
+        ]);
+
+        $productCategories  = ProductCategory::select(['id', 'name', 'publish'])
+            ->where('subcategory_id', $request->subcategory_id)
+            ->published()->get();
+
+        return response()->json(['data' => $productCategories]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function edit($id)
+    public function view($id)
     {
-        return view('product::edit');
+        $product = Product::where('id', $id)->with('ranges', 'images')->first();
+        return view('product::view', compact('id', 'product'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     * @param Request $request
-     * @param int $id
-     * @return Renderable
-     */
-    public function update(Request $request, $id)
+    // Ask mam where it is required
+    public function viewProduct(Request $request)
     {
-        //
+        try {
+            $product = Product::where('id', $request->id)->with(['category', 'brand', 'offer'])->first();
+            return response()->json([
+                "message" => "Product view!",
+                'data' => $product
+            ], 200);
+        } catch (\Exception $exception) {
+            return response([
+                'message' => $exception->getMessage()
+            ], 400);
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     * @param int $id
-     * @return Renderable
-     */
-    public function destroy($id)
+    public function deleteproduct(Request $request)
     {
-        //
+        $this->authorize('manageProducts');
+
+        try {
+            $product = Product::findorFail($request->id);
+            $this->productImageService->delete($product);
+            $product->delete();
+
+            return response()->json([
+                'status' => 'successful',
+                "message" => "Product deleted successfully!"
+            ], 200);
+        } catch (\Exception $exception) {
+            return response([
+                'message' => $exception->getMessage()
+            ], 400);
+        }
     }
 }

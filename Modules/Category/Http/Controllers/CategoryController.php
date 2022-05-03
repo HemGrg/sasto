@@ -2,138 +2,217 @@
 
 namespace Modules\Category\Http\Controllers;
 
-use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\str;
+use App\Http\Controllers\Controller;
 use Modules\Category\Entities\Category;
+use Validator;
+use Image;
+use DB, File;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     * @return Renderable
-     */
     public function index()
     {
-        $details = Category::all();
-        return view('category::category.view')->with(compact('details'));
+        $this->authorize('manageCategories');
+        $details = Category::orderBy('created_at', 'desc')->withCount('subcategory')->withCount('products')->get();
+        // $details = Category::withCount('subcategory')->orderBy('created_at', 'desc')->get();
+
+        return view('category::index', [
+            'details' => $details
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * @return Renderable
-     */
     public function create()
     {
-        return view('category::category.add');
+        $this->authorize('manageCategories');
+        return view('category::create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * @param Request $request
-     * @return Renderable
-     */
-    public function store(Request $request)
+    public function createcategory(Request $request)
     {
-        $request->validate([
-            'image' => 'required|mimes:jpeg,jpg,png,gif|dimensions:min_width=300,min_height=200,max_width=500,max_height=500',
-            'name' => 'required|max:255',
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:categories|max:255',
+            'image' => 'mimes:jpg,jpeg,png',
         ]);
-        $countCat = Category::where('name',$request->name)->count();
-        if($countCat > 0){
-            return redirect()->back()->with('flash_message_error','This Category is already exist please insert new Category!');
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'unsuccessful', 'data' => $validator->messages()]);
         }
-        $value = $request->except('image','featured','is_sub_category','in_include','publish');
-        $value['featured'] = is_null($request->featured)? 0 : 1 ;
-        $value['include_in_main_menu'] = is_null($request->in_include)? 0 : 1 ;
-        $value['does_contain_sub_category'] = is_null($request->is_sub_category)? 0 : 1 ;
-        $value['publish'] = is_null($request->publish)? 0 : 1 ;
-        if ($request->hasFile('image')) {
-            $thumImg = $this->imageProcessing($request->file('image'));
-            $value['image'] = $thumImg;
+
+        $value = $request->except('image', 'publish');
+        if (auth()->user()->hasRole('vendor')) {
+            $value['publish'] = 0;
+        } else {
+            $value['publish'] = $request->has('publish') ? 1 : 0;
         }
-        Category::create($value);
-        return redirect()->back()->with('message', 'Data Added Successfully.');
+        $value['is_featured'] = $request->has('is_featured') ? 1 : 0;
+        $value['hot_category'] = $request->has('hot_category') ? 1 : 0;
+        $value['include_in_main_menu'] = $request->has('include_in_main_menu') ? 1 : 0;
+        $value['does_contain_sub_category'] = $request->has('does_contain_sub_category') ? 1 : 0;
+        if ($request->image) {
+            $image = $this->imageProcessing('img-', $request->file('image'));
+            $value['image'] = $image;
+        }
+        $data = Category::create($value);
+
+        if (auth()->user()->hasRole('vendor')) {
+            foreach(admin_users() as $admin) {
+                $admin->notify(new \Modules\Category\Notifications\CategoryRequestNotification($data));
+            }
+        }
+
+        
     }
 
-    /**
-     * Show the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
+    public function allCategories()
+    {
+        $details = Category::orderBy('created_at', 'desc')->get();
+        $view = \View::make("category::categoriesTable")->with('details', $details)->render();
+
+        return response()->json(['html' => $view, 'status' => 'successful', 'data' => $details]);
+    }
+
+    public function deletecategory(Request $request,  Category $category)
+    {
+        abort_unless(auth()->user()->hasAnyRole('super_admin|admin'), 403);
+
+        $category->delete();
+
+        return response()->json([
+            'status' => 'successful',
+            "message" => "Category deleted successfully!"
+        ], 200);
+    }
+
+    public function editcategory(Request $request)
+    {
+        try {
+            $category = Category::findorFail($request->id);
+
+            return response()->json([
+                "data" => $category
+            ], 200);
+        } catch (\Exception $exception) {
+            return response([
+                'message' => $exception->getMessage()
+            ], 400);
+        }
+    }
+
+    public function updatecategory(Request $request)
+    {
+        abort_unless(auth()->user()->hasAnyRole('super_admin|admin'), 403);
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|max:255',
+                'image' => 'mimes:jpg,jpeg,png',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['status' => 'unsuccessful', 'data' => $validator->messages()]);
+                exit;
+            }
+            $category = Category::findorFail($request->id);
+            $value = $request->except('publish', '_token');
+            $value['publish'] = is_null($request->publish) ? 0 : 1;
+            $value['is_featured'] = $request->has('is_featured') ? 1 : 0;
+            $value['hot_category'] = $request->has('hot_category') ? 1 : 0;
+            $value['include_in_main_menu'] = $request->has('include_in_main_menu') ? 1 : 0;
+            $value['does_contain_sub_category'] = $request->has('does_contain_sub_category') ? 1 : 0;
+            if ($request->image) {
+                $image = Category::findorFail($request->id);
+                if ($image->image) {
+                    $thumbPath = public_path('images/thumbnail');
+                    $listingPath = public_path('images/listing');
+                    if ((file_exists($thumbPath . '/' . $image->image)) && (file_exists($listingPath . '/' . $image->image))) {
+                        unlink($thumbPath . '/' . $image->image);
+                        unlink($listingPath . '/' . $image->image);
+                    }
+                }
+                $image = $this->imageProcessing('img-', $request->file('image'));
+                $value['image'] = $image;
+            }
+            $success = $category->update($value);
+            return response()->json([
+                'status' => 'successful',
+                "data" => $value,
+                "message" => "category updated successfully"
+            ], 200);
+        } catch (\Exception $exception) {
+            return response([
+                'message' => $exception->getMessage()
+            ], 400);
+        }
+    }
+
+
     public function show($id)
     {
         return view('category::show');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function edit($slug)
+    public function edit($id)
     {
-        $detail = Category::where('slug',$slug)->first();
-        return view('category::category.edit')->with(compact('detail'));
+        abort_unless(auth()->user()->hasAnyRole('super_admin|admin'), 403);
+
+        return view('category::edit', compact('id'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     * @param Request $request
-     * @param int $id
-     * @return Renderable
-     */
-    public function update(Request $request, $id)
+    public function view($id)
     {
-        $request->validate([
-            'image' => 'mimes:jpeg,jpg,png,gif|dimensions:min_width=300,min_height=200,max_width=500,max_height=500',
-            'name' => 'required|max:255',
-        ]);
-        $value = $request->except('image','featured','is_sub_category','in_include','publish');
-        $value['slug']=Str::slug($request->name);
-        $value['featured'] = is_null($request->featured)? 0 : 1 ;
-        $value['include_in_main_menu'] = is_null($request->in_include)? 0 : 1 ;
-        $value['does_contain_sub_category'] = is_null($request->is_sub_category)? 0 : 1 ;
-        $value['publish'] = is_null($request->publish)? 0 : 1 ;
-        if($request->hasFile('image')){
-                $image=Category::find($id);
-                if($image->image){
-                    $imagePath = public_path('uploads/category');
-                    if((file_exists($imagePath.'/'.$image->image))){
-                        unlink($imagePath.'/'.$image->image);
-                    }
-                }
-                $image=$this->imageProcessing($request->file('image'));
-                $value['image']=$image;
-            }
-        Category::find($id)->update($value);
-        return redirect()->route('category.index')->with('message','Category Updated Successfully.');
+        return view('category::view', compact('id'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     * @param int $id
-     * @return Renderable
-     */
-    public function destroy($id)
+    public function viewCategory(Request $request)
     {
-        //
+        try {
+            $category = Category::findorFail($request->id);
+            return response()->json([
+                "message" => "Category view!",
+                'data' => $category
+            ], 200);
+        } catch (\Exception $exception) {
+            return response([
+                'message' => $exception->getMessage()
+            ], 400);
+        }
     }
 
-    //Image
-
-    public function imageProcessing($image)
+    public function imageProcessing($type, $image)
     {
-        $input['imagename'] = Date("D-h-i-s") . '-' . rand() . '-' . '.' . $image->extension();
-        $image->move('uploads/category/', $input['imagename']);
+        $input['imagename'] = $type . time() . '.' . $image->getClientOriginalExtension();
+        $thumbPath = public_path() . "/images/thumbnail";
+        if (!File::exists($thumbPath)) {
+            File::makeDirectory($thumbPath, 0777, true, true);
+        }
+        $listingPath = public_path() . "/images/listing";
+        if (!File::exists($listingPath)) {
+            File::makeDirectory($listingPath, 0777, true, true);
+        }
+        $img1 = Image::make($image->getRealPath());
+        $img1->fit(99, 88)->save($thumbPath . '/' . $input['imagename']);
+
+
+        $img2 = Image::make($image->getRealPath());
+        $img2->save($listingPath . '/' . $input['imagename']);
+
+        $destinationPath = public_path('/images');
         return $input['imagename'];
     }
 
     public function unlinkImage($imagename)
     {
-        $mainPath = public_path('uploads/category/') . $imagename;
-        unlink($mainPath);
+        $thumbPath = public_path('images/thumbnail/') . $imagename;
+        $listingPath = public_path('images/listing/') . $imagename;
+        if (file_exists($thumbPath)) {
+            unlink($thumbPath);
+        }
+
+        if (file_exists($listingPath)) {
+            unlink($listingPath);
+        }
+
         return;
     }
 }

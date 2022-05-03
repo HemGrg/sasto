@@ -14,7 +14,16 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Broadcast::routes();
+        if (request()->hasHeader('authorization')) {
+            // logger('Using auth:api middleware for channel authorization');
+            Broadcast::routes(['middleware' => ['auth:api']]);
+        } else {
+            // logger('Using web middleware for channel authorization');
+            // Broadcast::routes(['middleware' => ['web', 'auth']]);
+            Broadcast::routes();
+        }
+
+        // Broadcast::routes();
 
         require base_path('routes/channels.php');
     }

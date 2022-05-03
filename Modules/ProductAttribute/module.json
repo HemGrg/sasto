@@ -1,0 +1,13 @@
+{
+    "name": "ProductAttribute",
+    "alias": "productattribute",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ProductAttribute\\Providers\\ProductAttributeServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

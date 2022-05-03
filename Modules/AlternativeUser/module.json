@@ -1,0 +1,13 @@
+{
+    "name": "AlternativeUser",
+    "alias": "alternativeuser",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\AlternativeUser\\Providers\\AlternativeUserServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

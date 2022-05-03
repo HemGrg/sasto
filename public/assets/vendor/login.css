@@ -1,0 +1,354 @@
+/**************************  index.html  ***************************/
+/**********************************************************************/
+.vendor-bg {
+    background: url("../../image/pexels-photo-5668841.jpeg") no-repeat;
+    background-size: cover;
+    background-position: center center;
+}
+
+.vendor-overlay {
+    padding: 104px 0;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.vendor-title {
+    color: #FFFFFF;
+    font-size: 2.8rem;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.vendor-sign-in-form, .vendor-section {
+    background: #F2F3F7;
+}
+
+.vendor-btn {
+    margin-bottom: 2rem;
+}
+
+.vendor-form {
+    padding: 18px 20px;
+    border: 1px solid lightgray;
+}
+
+.vendor-form-bt{
+    padding: 18px 20px;
+    border: 1px solid lightgray
+}
+.form-check {
+    margin-bottom: 1rem;
+}
+
+/*************** Steps ****************/
+.step-div {
+    display: inline-block;
+    width: 200px;
+    padding: 12px;
+    background: #FFFFFF;
+    box-shadow: 1px 1px 6px 0px lightblue;
+}
+
+.step-group {
+    display: flex;
+    justify-content: space-around;
+}
+
+.step-subtitle {
+    color: #FFA500;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.step-div-h1 {
+    color: #1e76bd;
+}
+
+.step-div-p {
+    font-weight: 500;
+}
+
+.vendor-img-wrap {
+    margin: 1.4rem 0;
+}
+
+@media screen and (max-width: 600px) {
+    .step-group {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .step-div:not(:last-child) {
+        margin-bottom: 1.8rem;
+    }
+}
+
+/**************************  category.html  ***************************/
+/**********************************************************************/
+ /* Task 2 */
+ .category-body {
+    background: #F2F3F7;
+}
+/********************  Image   ********************/
+.img-wrapper {
+    height: 120px;
+    width: 120px;
+    margin: 0 auto;
+}
+
+.img-wrapper > img {
+    height: inherit;
+    width: inherit;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/********************  card   ********************/
+.custom-card{
+    padding: 20px 0px;
+    margin-right: 60px;
+    margin-left: 60px;
+}
+
+.card-footers {
+    padding: .10rem 1.25rem;
+    border-top: none;
+    background: none;
+}
+.card-footers button{
+    border-radius: 2.25rem;
+}
+
+/********************  Button Category   ********************/
+*:focus {
+    box-shadow: none!important;
+}
+
+.btn-category {
+    font-weight: 500;
+    color: #FFFFFF;
+    background: #FFA500;
+    border: 1px solid #FFA500;
+    width: 250px;
+    margin: 0 auto;
+}
+
+.btn-category:hover{
+    color: #FFFFFF;
+    background: rgb(240, 156, 0);
+    border: 1px solid rgb(240, 156, 0);
+}
+
+/********************  Button Select   ********************/
+.btn-select {
+    height: 40px;
+    width: 100%;
+    margin: 0 auto;
+    font-weight: 500;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-select:hover {
+    color: #1e76bd;
+    background: #FFFFFF;
+}
+
+.card:hover {
+    transition: all .4s ease-in;
+    box-shadow: 2px 1px 7px 0px #1e76bd; /* 6px 1px */
+}
+
+/********************  Button Category Plan   ********************/
+.list-item {
+    display: flex;
+    justify-content: flex-start;
+    margin: 0 18px;
+}
+.list-item  > p {
+    margin: 0;
+}
+
+.list-item > i {
+    color: #FFA500;
+}
+
+/********************  Media Queries   ********************/
+@media all and (max-width: 960px) {
+    .card-deck {
+        flex-direction: column;
+    }
+
+    .card-deck .card{
+        margin-right: 30px;
+        margin-left: 30px;
+    }
+}
+
+
+/**************************  select plan.html  ***************************/
+/**********************************************************************/
+/* Task 2 */
+.select-plan-body {
+    background: #F2F3F7;
+}
+.select-title-wrapper {
+    margin-bottom: 2.8rem;
+}
+.select-title {
+    color: #FFFFFF;
+    font-size: 1.4rem;
+    padding: 10px 0;
+    background: #737372;
+}
+
+/********************  Image   ********************/
+.img-wrapper {
+    height: 120px;
+    width: 120px;
+    margin: 0 auto;
+}
+
+.img-wrapper > img {
+    height: inherit;
+    width: inherit;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/********************  card   ********************/
+.card {
+    border-radius: 2.25rem;
+}
+
+.card-deck .card{
+    padding: 20px 25px;
+}
+
+.card-footer {
+    border-top: none;
+    background-color: #FFFFFF;
+}
+
+/********************  Button Category  ********************/
+.btn-category {
+    font-weight: 500;
+    color: #FFFFFF;
+    background: #FFA500;
+    border: 1px solid #FFA500;
+    width: 250px;
+    margin: 0 auto;
+}
+
+.btn-category:hover{
+    color: #FFFFFF;
+    background: rgb(240, 156, 0);
+    border: 1px solid rgb(240, 156, 0);
+}
+/********************  Button Select  ********************/
+.btn-select { 
+    height: 34px;
+    /* width: 96px;  */
+    width: 100%;
+    margin: 0 auto;
+    border-radius: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/********************  Media Queries   ********************/
+@media all and (max-width: 960px) {
+    .card-deck {
+        flex-direction: column;
+    }
+}
+
+
+
+/**************************  general information.html  ***************************/
+/********************************************************************************/
+.general-information {
+    background: #FFFFFF;
+}
+.general-row {
+    border: 1px solid lightgray;
+    border-radius: 35px;
+    padding: 26px 10px;
+    background: #F2F3F7;
+}
+
+.general-title {
+    font-size: 1.4rem;
+    font-weight: bolder;
+}
+
+.general-subtitle {
+    color: #f37b34;
+    font-size: 1.2rem;
+    margin-bottom: 1.4rem;
+}
+
+.general-label {
+    font-size: 1rem;
+}
+
+.general-row label {
+    color: #595d64;
+    font-weight: 500;
+}
+
+.custom-submit-btn {
+    width: 200px;;
+}
+
+.logo {
+    height: 80px;
+}
+
+.fa-asterisk {
+    color:#f37b34;
+}
+
+.img-asterik {
+    margin-bottom: 6px;
+}
+
+/**************************  login.html  ***************************/
+/**********************************************************************/
+.login-row {
+    border: 1px solid lightgray;
+    /* padding: 30px 18px; */
+    border-radius: 20px;
+    background: #F2F3F7;
+}
+
+.btn-signup {
+    width: 126px;
+    border-radius: 20px;
+}
+
+/***************************** otp form *******************************/
+.otp-form-wrapper {
+    /* margin: 0 auto; */
+    padding: 40px;
+    box-shadow: 1px 1px 6px 0px lightblue;
+    background: #F2F3F7;
+}
+
+.otp-verification-status {
+    padding: 16px 30px;
+    color: #3a6449;
+    background: #d4edda;
+    border-radius: 4px;
+}
+
+.otp-form  input {
+    margin-bottom: 1rem;
+}
+
+.otp-btn {
+    width: 100%;
+}

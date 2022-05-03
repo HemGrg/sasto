@@ -1,38 +1,42 @@
-/**
- * First we will load all of this project's JavaScript dependencies which
- * includes Vue and other libraries. It is a great starting point when
- * building robust, powerful web applications using Vue and Laravel.
- */
-
 require('./bootstrap');
 
-window.Vue = require('vue').default;
-window.axios = require('axios');
-window.req = axios.create({
-    baseURL: '/'
-})
+import Vue from 'vue'
 
-import router from './router'
-import common from './common'
-import Vue from 'vue';
+import Vuelidate from 'vuelidate'
 
+Vue.use(Vuelidate);
 
+import VueChatScroll from 'vue-chat-scroll'
+Vue.use(VueChatScroll)
 
-Vue.mixin(common)
+import ScrollAnimation from "./directive/ScrollAnimation";
 
-//Login
+Vue.directive('scrollanimation', ScrollAnimation);
 
-Vue.component('login-component', require('./components/adminLogin/AdminLogin.vue').default);
-Vue.component('login-inputs', require('./components/adminLogin/loginInput.vue').default);
-Vue.component('app-page', require('./components/adminLogin/App.vue').default);
+Vue.component('frontmaster',require('./components/Layouts/FrontMaster.vue').default);
+Vue.component('loginhomepage',require('./components/vendorLogin/vendorHomepage.vue').default);
+Vue.component('faq',require('./components/FAQ.vue').default);
+Vue.component('login',require('./components/vendorLogin/login.vue').default);
+Vue.component('register', require('./components/Register/selectCategory.vue').default);
+Vue.component('forgotpassword', require('./components/vendorLogin/forgotpassword.vue').default);
+Vue.component('verification', require('./components/vendorLogin/accountVerification.vue').default);
+Vue.component('resetpassword', require('./components/vendorLogin/Reset.vue').default);
+Vue.component('createdeal', require('./components/vendorDashboard/createDeal.vue').default);
+Vue.component('editdeal',require('./components/vendorDashboard/editDeal.vue').default);
+Vue.component('AboutUs', require('./pages/AboutUs.vue').default);
+Vue.component('TermsConditions', require('./pages/TermsConditions.vue').default);
+Vue.component('termsOfUse', require('./pages/TermsOfUse.vue').default);
+Vue.component('PrivacyPolicy', require('./pages/PrivacyPolicy.vue').default);
+Vue.component('LogisticsManagement',require('./pages/LogisticsManagement.vue').default);
+Vue.component('AboutUs', require('./pages/AboutUs').default);
 
-Vue.component('input-page', require('./components/Input.vue').default);
-Vue.component('example-component', require('./components/ExampleComponent.vue').default);
-Vue.component('viewCategory', require('./components/category/ViewCategory.vue').default);
-Vue.component('add-product', require('./components/product/AddProduct.vue').default);
-Vue.component('view-service', require('./components/service/ViewService.vue').default);
+Vue.component('PriceRange',require('./components/Product/PriceRange.vue').default);
+
+// Chat components
+Vue.component ('chatbox', require('./components/chat/Chatbox.vue').default);
+Vue.component ('inbox-list', require('./components/chat/InboxList.vue').default);
+Vue.component ('loading-inbox-list', require('./components/chat/LoadingInboxList.vue').default);
 
 const app = new Vue({
-    el: '#app',
-    router
-});
+    el: "#app",
+})
